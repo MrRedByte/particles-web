@@ -1,169 +1,224 @@
-let canvas = document.getElementById('canvas');
-let context = canvas.getContext('2d');
-
+/**************
+  Variables
+************/
+let canvas = document.getElementById("canvas");
+let context = canvas.getContext("2d");
 let width, height;
+let mouseX, mouseY;
+let particlesArray = [];
+let hue = 0;
+let universalColor = "hsl(0, 50, 50)";
+
+/*************
+  Setup
+*************/
+document.getElementsByTagName("body")[0].style.backgroundColor = "#171717";
+document.getElementsByTagName("body")[0].style.cursor = "none";
+
 width = canvas.width = window.innerWidth;
 height = canvas.height = window.innerHeight;
 
-let numberOfParticles = 250; //Math.ceil(random(1, 200));
-let particles = [];
+/*************
+  Particle class
+*************/
+class Particle {
+  constructor(X, Y, radius, color, lifespan) {
+    this.x = X;
+    this.y = Y;
 
-window.addEventListener('resize', () => {
-  width = canvas.width = window.innerWidth;
-  height = canvas.height = window.innerHeight;
-});
+    this.velocityX = random(-2, 2);
+    this.velocityY = random(-2, 2);
 
+    this.radius = radius;
+    this.color = color;
+    this.lifespan = lifespan;
+
+    //this.hue = hue;
+    //this.lastPoint = { x: this.x, y: this.y };
+  }
+  show() {
+    //Last point as an agument if we want to do the particles without arc
+    context.beginPath();
+    context.fillStyle = this.color;
+    context.arc(this.x, this.y, this.radius, 0, 2 * Math.PI);
+    context.closePath();
+    context.fill();
+    /*context.beginPath();
+    context.strokeStyle = this.color;
+    context.lineWidth = this.radius;
+    context.moveTo(this.lastPoint.x, this.lastPoint.y);
+    context.lineTo(this.x, this.y);
+    // context.arcTo(this.x+this.radius, this.y, this.x, this.y, this.radius);
+    // context.arcTo(this.x+this.radius, this.y, this.x, this.y, this.radius);
+    // context.arcTo(this.x, this.y-this.radius, this.x, this.y+this.radius, this.radius);
+    // context.arcTo(this.x, this.y+this.radius, this.x, this.y-this.radius, this.radius);
+    context.lineWidth = this.radius;
+    context.stroke();
+    context.closePath();*/
+  }
+  update() {
+    this.lastPoint = { x: this.x, y: this.y };
+    this.x += this.velocityX;
+    this.y += this.velocityY;
+    if (this.lifespan != undefined) {
+      this.lifespan--;
+    }
+  }
+  bounceOnBorderColision() {
+    if (this.x - this.radius < 0 || this.x + this.radius > width) {
+      this.velocityX = -this.velocityX;
+    }
+    if (this.y - this.radius < 0 || this.y + this.radius > height) {
+      this.velocityY = -this.velocityY;
+    }
+  }
+  finish() {
+    return this.lifespan < 0;
+  }
+}
+
+/*************
+  Rendering
+*************//*
+let start;
+function drawOnCanvas(timestamp) {
+  if (start === undefined) {
+    start = timestamp;
+  }
+  const elapsed = timestamp - start;
+
+  context.fillStyle = "rgba(23, 23, 23, 0.05)";
+  context.fillRect(0, 0, width, height);
+  for (let i = particlesArray.length - 1; i >= 0; i--) {
+    particlesArray[i].show();
+    particlesArray[i].bounceOnBorderColision();
+    particlesArray[i].color = universalColor; //each particle has the same color
+    particlesArray[i].update();
+    if (particlesArray[i].finish()) {
+      particlesArray.splice(i, 1);
+    }
+  }
+
+  if (elapsed < 2000) { // Stop the animation after 2 seconds (elapsed < 2000)
+    window.requestAnimationFrame(drawOnCanvas);
+  }
+}
+window.requestAnimationFrame(drawOnCanvas);*/
+
+window.setInterval(() => {
+  context.fillStyle = "rgba(23, 23, 23, 0.05)";
+  context.fillRect(0, 0, width, height);
+  for (let i = particlesArray.length - 1; i >= 0; i--) {
+    particlesArray[i].show();
+    particlesArray[i].bounceOnBorderColision();
+    particlesArray[i].color = universalColor; //each particle has the same color
+    particlesArray[i].update();
+    if (particlesArray[i].finish()) {
+      particlesArray.splice(i, 1);
+    }
+  }
+}, 1);/**/
+
+//Autospawn
+window.setInterval(() => {
+  if (particlesArray.length < 15) {
+    particlesArray.push(new Particle(width / 2, height / 2, 5, universalColor));
+  }
+}, 100);
+
+//Increase the hue change and lower the interval's time for rainbow mode
+window.setInterval(() => {
+  universalColor = "hsl(" + hue + ", 50%, 50%)";
+  hue++; //hue+=10;
+
+  //Random hue increase for uneven progress
+  //hue+=~~random(1, 50); //~~ is faster than of Math.floor()
+  if (hue > 359) {
+    hue = 0;
+  }
+}, 10); //10
+
+//Autospawn
+window.setInterval(() => {
+  if (particlesArray.length < 1) {
+    particlesArray.push(
+      new Particle(width / 2, height / 2, 5, universalColor)
+    );
+  }
+}, 100);
+
+/*************
+  Functions
+*************/
 function random(min, max) {
   return min + Math.random() * (max - min + 1);
 }
 
-class Particle {
-  constructor() {
-    this.radius = 5;
-    this.lifetime = Math.ceil(random(1000, 5000));
+/*************
+  Event listeners
+*************/
+//Automatically adjust the size of the canvas
+window.addEventListener("resize", () => {
+  width = canvas.width = window.innerWidth;
+  height = canvas.height = window.innerHeight;
+});
 
-    this.x = width / 2; //random(0 + this.radius, width - this.radius);
-    this.y = height / 2; //random(0 + this.radius, height - this.radius);
-
-    //Double Tilde ~~a and Bitwise OR (a | 0) are faster ways to write Math.floor(a)
-    this.randomColor = '#' + ((Math.random() * 16777215) | 0).toString(16);
-
-    this.speedX = random(-2, 2);
-    this.speedY = random(-2, 2);
+window.addEventListener("keydown", function (event) {
+  //Create new particles by pressing the space bar
+  if (event.key == " ") {
+    particlesArray.push(
+      new Particle(mouseX, mouseY, 5, universalColor, ~~random(100, 1000))
+    );
   }
-
-  show() {
-    context.beginPath();
-    context.fillStyle = this.randomColor;
-    // After setting the fill style, draw an arc on the canvas
-    context.arc(this.x, this.y, this.radius, 0, Math.PI * 2, true);
-    context.closePath();
-    context.fill();
+  //Delete all particles
+  if (event.key == "q") {
+    particlesArray = [];
   }
-
-  update() {
-    this.x += this.speedX;
-    this.y += this.speedY;
-    this.lifetime--;
-  }
-
-  bounceOnBorderColision() {
-    if (this.x - this.radius < 0 || this.x + this.radius > width) {
-      this.speedX = -this.speedX;
-    }
-    if (this.y - this.radius < 0 || this.y + this.radius > height) {
-      this.speedY = -this.speedY;
-    }
-  }
-  /*
-  colisionDetection(){
-    let vCollision = {x: obj2.x - obj1.x, y: obj2.y - obj1.y};
-    let distance = Math.sqrt((obj2.x-obj1.x)*(obj2.x-obj1.x) + (obj2.y-obj1.y)*(obj2.y-obj1.y));
-    let vCollisionNorm = {x: vCollision.x / distance, y: vCollision.y / distance};
-    let vRelativeVelocity = {x: obj1.vx - obj2.vx, y: obj1.vy - obj2.vy};
-    let speed = vRelativeVelocity.x * vCollisionNorm.x + vRelativeVelocity.y * vCollisionNorm.y;
-    if (speed < 0){
-      break;
-    }
-   obj1.vx -= (speed * vCollisionNorm.x);
-   obj1.vy -= (speed * vCollisionNorm.y);
-   obj2.vx += (speed * vCollisionNorm.x);
-   obj2.vy += (speed * vCollisionNorm.y);
-  };
-
-  //pt x
-  if((this.x + vt - (q + u))*(this.x + vt - (q + ut)) == 4r*r){
-
-  }
-
-  //pt y
-  if((this.y + vt - (this.y + u))*(p + vt - (this.y + u)) == 4r*r){
-
-  }
-
-  if((p + vt - (q + ut))*(p + vt - (q + ut)) = 4r*r){
-
-  }
-  
-  */
-  deleteParticle() {
-    return this.lifetime < 0;
-  }
-}
-
-let displayParticles = window.setInterval(() => {
-  //updating the display, the alpha value enables the particle to have a trail
-  context.globalCompositeOperation = 'source-over';
-  context.fillStyle = 'rgba(25, 25, 25, 0.3)';
-  context.fillRect(0, 0, width, height);
-  context.globalCompositeOperation = 'screen';
-
-  if (particles.length < numberOfParticles) {
-    particles.push(new Particle());
-    // for (let i = 0; i < 5; i++) {
-    //   particles.push(new Particle());
-    // }
-    //console.log('Particle spawned!  ツ ¯\\_(ツ)_/¯');
-  }
-
-  for (let i = particles.length - 1; i >= 0; i--) {
-    particles[i].show();
-    particles[i].bounceOnBorderColision();
-    particles[i].update();
-
-    if (particles[i].deleteParticle()) {
-      particles.splice(i, 1);
-    }
-  }
-}, 1);
-
-window.addEventListener('keydown', function (event) {
-  if (event.key == ' ') {
-    particles.push(new Particle());
-  }
-  if (event.key == 'i') {
-    context.font = "30px Arial";
-    context.fillText(particles.length + ' particles', 5, 25);
-    // let numberOfparticlesDiv = document.createElement('div', );
-    // numberOfparticlesDiv.style.position= 'absolute';
-    // numberOfparticlesDiv.style.top= '0px';
-    // numberOfparticlesDiv.style.left= '0px';
-    // numberOfparticlesDiv.style.zIndex= '2';
-    // numberOfparticlesDiv.innerHTML = particles.length + ' particles';
+  if (event.key == "c") {
+    context.fillStyle = "rgba(23, 23, 23, 1)";
+    context.fillRect(0, 0, width, height);
   }
 });
-// window.addEventListener('keydown', function (event) {
-  
-// });
-/*
-for(let i=0; i<numberOfParticles; i++){
-  console.log(particles[i].lifetime);
-}
-console.log(particles.length);
-window.clearInterval(displayParticles);
-*/
-/*
-var keyEnum = { W_Key: 0, A_Key: 1, S_Key: 2, D_Key: 3, Spacebar_key: 4 };
-var keyArray = new Array(5);
 
-function onKeyDown() {
-  // Detect which key was pressed
-  if (key == ' ') keyArray[keyEnum.Spacebar_key] = true;
-  // Repeat for each key you care about...
-}
+window.addEventListener("mousemove", (event) => {
+  mouseX = event.clientX;
+  mouseY = event.clientY;
+});
 
-function onKeyUp() {
-  // Detect which key was released
-  if (key == ' ') keyArray[keyEnum.Spacebar_key] = false;
-  // Repeat for each key you care about...
-}
+/*************
+ Compatibility
+*************/
 
-function isKeyDown(key) {
-  return keyArray[key];
-}*/
-// window.addEventListener("keydown", function(event) {
-//  console.log(`KeyboardEvent: key='${event.key}' | code='${event.code}'`);
-//  if(event.key == ' '){
-//    console.log('Space');
-//  }
-// });
+window.requestAnimationFrame =
+  window.requestAnimationFrame ||
+  window.mozRequestAnimationFrame ||
+  window.webkitRequestAnimationFrame ||
+  window.msRequestAnimationFrame;
+
+// Add something so that each particle has its own hue that modifies like the others // Delayed hue?
+//Find a way to remove bg dirtiness and keep the trails
+//add requestAnimationFrame()
+
+// Circular motion and smooth mouse following with drag https://www.youtube.com/watch?v=raXW5J1Te7Y
+
+//http://javascript.info/js-animation#using-requestanimationframe
+//https://developer.mozilla.org/en-US/docs/Web/API/window/requestAnimationFrame for firefox https://robert.ocallahan.org/2010/08/mozrequestanimationframe_14.html
+//https://developer.mozilla.org/en-US/docs/Web/API/DOMHighResTimeStamp (if needed)
+
+// function createDot(X, Y, radius, color) {
+//   // context.beginPath();
+//   // context.fillStyle = color;
+//   // context.arc(X, Y, radius, 0, 2 * Math.PI);
+//   // context.closePath();
+//   // context.fill();
+//   context.beginPath();
+//   context.strokeStyle = color;
+//   context.lineWidth = radius;
+//   context.moveTo();
+//   context.lineTo();
+//   context.stroke();
+//   context.closePath();
+// }
+
+// Screen is black but clear screen makes it gray - check implementation notes
+
