@@ -7,12 +7,13 @@ let width, height;
 let mouseX, mouseY;
 let particlesArray = [];
 let hue = 0;
-let universalColor = "hsl(0, 50, 50)";
+let universalColor = "hsl(0, 100, 50)";
+let canvasColor = "rgba(253, 253, 253, 0.05)";
 
 /*************
   Setup
 *************/
-document.getElementsByTagName("body")[0].style.backgroundColor = "#171717";
+document.getElementsByTagName("body")[0].style.backgroundColor = "none";//"#171717";
 document.getElementsByTagName("body")[0].style.cursor = "none";
 
 width = canvas.width = window.innerWidth;
@@ -23,44 +24,28 @@ height = canvas.height = window.innerHeight;
 *************/
 class Particle {
   constructor(X, Y, radius, color, lifespan) {
-    this.x = X;
-    this.y = Y;
+    this.x = Math.floor(X);
+    this.y = Math.floor(Y);
 
-    this.velocityX = random(-2, 2);
-    this.velocityY = random(-2, 2);
+    this.velocityX = Math.floor(random(-5, 5));
+    this.velocityY = Math.floor(random(-5, 5));
 
     this.radius = radius;
     this.color = color;
     this.lifespan = lifespan;
-
-    //this.hue = hue;
-    //this.lastPoint = { x: this.x, y: this.y };
   }
   show() {
-    //Last point as an agument if we want to do the particles without arc
     context.beginPath();
-    context.fillStyle = this.color;
     context.arc(this.x, this.y, this.radius, 0, 2 * Math.PI);
     context.closePath();
+    context.fillStyle = this.color;
     context.fill();
-    /*context.beginPath();
-    context.strokeStyle = this.color;
-    context.lineWidth = this.radius;
-    context.moveTo(this.lastPoint.x, this.lastPoint.y);
-    context.lineTo(this.x, this.y);
-    // context.arcTo(this.x+this.radius, this.y, this.x, this.y, this.radius);
-    // context.arcTo(this.x+this.radius, this.y, this.x, this.y, this.radius);
-    // context.arcTo(this.x, this.y-this.radius, this.x, this.y+this.radius, this.radius);
-    // context.arcTo(this.x, this.y+this.radius, this.x, this.y-this.radius, this.radius);
-    context.lineWidth = this.radius;
-    context.stroke();
-    context.closePath();*/
   }
   update() {
     this.lastPoint = { x: this.x, y: this.y };
     this.x += this.velocityX;
     this.y += this.velocityY;
-    if (this.lifespan != undefined) {
+    if (this.lifespan > 0) {
       this.lifespan--;
     }
   }
@@ -79,57 +64,26 @@ class Particle {
 
 /*************
   Rendering
-*************//*
-let start;
-function drawOnCanvas(timestamp) {
-  if (start === undefined) {
-    start = timestamp;
-  }
-  const elapsed = timestamp - start;
+*************/
 
-  context.fillStyle = "rgba(23, 23, 23, 0.05)";
+window.setInterval(() => {
+  context.fillStyle = canvasColor;
   context.fillRect(0, 0, width, height);
+  //ctx.globalCompositeOperation = "source-over";
   for (let i = particlesArray.length - 1; i >= 0; i--) {
     particlesArray[i].show();
     particlesArray[i].bounceOnBorderColision();
-    particlesArray[i].color = universalColor; //each particle has the same color
+    //particlesArray[i].color = universalColor; //each particle has the same color
     particlesArray[i].update();
     if (particlesArray[i].finish()) {
       particlesArray.splice(i, 1);
     }
   }
-
-  if (elapsed < 2000) { // Stop the animation after 2 seconds (elapsed < 2000)
-    window.requestAnimationFrame(drawOnCanvas);
-  }
-}
-window.requestAnimationFrame(drawOnCanvas);*/
-
-window.setInterval(() => {
-  context.fillStyle = "rgba(23, 23, 23, 0.05)";
-  context.fillRect(0, 0, width, height);
-  //ctx.globalCompositeOperation = "darken";
-  for (let i = particlesArray.length - 1; i >= 0; i--) {
-    particlesArray[i].show();
-    particlesArray[i].bounceOnBorderColision();
-    particlesArray[i].color = universalColor; //each particle has the same color
-    particlesArray[i].update();
-    if (particlesArray[i].finish()) {
-      particlesArray.splice(i, 1);
-    }
-  }
-}, 1);/**/
-
-//Autospawn
-window.setInterval(() => {
-  if (particlesArray.length < 15) {
-    particlesArray.push(new Particle(width / 2, height / 2, 5, universalColor));
-  }
-}, 100);
+}, 10);
 
 //Increase the hue change and lower the interval's time for rainbow mode
 window.setInterval(() => {
-  universalColor = "hsl(" + hue + ", 50%, 50%)";
+  universalColor = "hsl(" + hue + ", 100%, 50%)";
   hue++; //hue+=10;
 
   //Random hue increase for uneven progress
@@ -141,12 +95,12 @@ window.setInterval(() => {
 
 //Autospawn
 window.setInterval(() => {
-  if (particlesArray.length < 1) {
+  if (particlesArray.length < 15) {
     particlesArray.push(
       new Particle(width / 2, height / 2, 5, universalColor)
     );
   }
-}, 800);
+}, 600);
 
 /*************
   Functions
@@ -175,10 +129,10 @@ window.addEventListener("keydown", function (event) {
   if (event.key == "q") {
     particlesArray = [];
   }
-  if (event.key == "c") {
-    context.fillStyle = "rgba(23, 23, 23, 1)";
+  /*if (event.key == "c") {
+    context.fillStyle = "rgba(253, 253, 253, 1)";
     context.fillRect(0, 0, width, height);
-  }
+  }*/
 });
 
 window.addEventListener("mousemove", (event) => {
