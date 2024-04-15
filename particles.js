@@ -108,6 +108,7 @@ window.requestAnimationFrame(drawOnCanvas);*/
 window.setInterval(() => {
   context.fillStyle = "rgba(23, 23, 23, 0.05)";
   context.fillRect(0, 0, width, height);
+  //ctx.globalCompositeOperation = "darken";
   for (let i = particlesArray.length - 1; i >= 0; i--) {
     particlesArray[i].show();
     particlesArray[i].bounceOnBorderColision();
@@ -136,7 +137,7 @@ window.setInterval(() => {
   if (hue > 359) {
     hue = 0;
   }
-}, 10); //10
+}, 100); //10
 
 //Autospawn
 window.setInterval(() => {
@@ -145,7 +146,7 @@ window.setInterval(() => {
       new Particle(width / 2, height / 2, 5, universalColor)
     );
   }
-}, 100);
+}, 800);
 
 /*************
   Functions
