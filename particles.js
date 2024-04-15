@@ -3,19 +3,17 @@
 ************/
 let canvas = document.getElementById("canvas");
 let context = canvas.getContext("2d");
-let width, height;
 let mouseX, mouseY;
 let particlesArray = [];
 let hue = 0;
 let universalColor = "hsl(0, 100, 50)";
 let canvasColor = "rgba(253, 253, 253, 0.05)";
+let toggle = false;
+let stopId;
 
 /*************
   Setup
 *************/
-document.getElementsByTagName("body")[0].style.backgroundColor = "none";//"#171717";
-document.getElementsByTagName("body")[0].style.cursor = "none";
-
 width = canvas.width = window.innerWidth;
 height = canvas.height = window.innerHeight;
 
@@ -49,6 +47,7 @@ class Particle {
       this.lifespan--;
     }
   }
+
   bounceOnBorderColision() {
     if (this.x - this.radius < 0 || this.x + this.radius > width) {
       this.velocityX = -this.velocityX;
@@ -65,10 +64,9 @@ class Particle {
 /*************
   Rendering
 *************/
-
-window.setInterval(() => {
+function render(){
   context.fillStyle = canvasColor;
-  context.fillRect(0, 0, width, height);
+  context.fillRect(0, 0, canvas.width, canvas.height);
   //ctx.globalCompositeOperation = "source-over";
   for (let i = particlesArray.length - 1; i >= 0; i--) {
     particlesArray[i].show();
@@ -79,25 +77,23 @@ window.setInterval(() => {
       particlesArray.splice(i, 1);
     }
   }
-}, 10);
+  stopId = window.requestAnimationFrame(render);
+}
 
 //Increase the hue change and lower the interval's time for rainbow mode
 window.setInterval(() => {
   universalColor = "hsl(" + hue + ", 100%, 50%)";
-  hue++; //hue+=10;
-
-  //Random hue increase for uneven progress
-  //hue+=~~random(1, 50); //~~ is faster than of Math.floor()
+  hue+=10;
   if (hue > 359) {
     hue = 0;
   }
-}, 100); //10
+}, 600); //10
 
 //Autospawn
 window.setInterval(() => {
   if (particlesArray.length < 15) {
     particlesArray.push(
-      new Particle(width / 2, height / 2, 5, universalColor)
+      new Particle(canvas.width / 2, canvas.height / 2, 5, universalColor)
     );
   }
 }, 600);
@@ -109,13 +105,23 @@ function random(min, max) {
   return min + Math.random() * (max - min + 1);
 }
 
+function toggleAnimation() {
+  if (!toggle) {
+    toggle = true;
+    window.requestAnimationFrame(render);
+  } else {
+    toggle = false;
+    cancelAnimationFrame(stopId);
+  }
+}
+
 /*************
   Event listeners
 *************/
 //Automatically adjust the size of the canvas
 window.addEventListener("resize", () => {
-  width = canvas.width = window.innerWidth;
-  height = canvas.height = window.innerHeight;
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
 });
 
 window.addEventListener("keydown", function (event) {
@@ -129,10 +135,11 @@ window.addEventListener("keydown", function (event) {
   if (event.key == "q") {
     particlesArray = [];
   }
-  /*if (event.key == "c") {
-    context.fillStyle = "rgba(253, 253, 253, 1)";
-    context.fillRect(0, 0, width, height);
-  }*/
+  if (event.key == "c") {
+    //context.fillStyle = "rgba(253, 253, 253, 1)";
+    //context.fillRect(0, 0, width, height);
+    toggleAnimation();
+  }
 });
 
 window.addEventListener("mousemove", (event) => {
@@ -151,8 +158,6 @@ window.requestAnimationFrame =
   window.msRequestAnimationFrame;
 
 // Add something so that each particle has its own hue that modifies like the others // Delayed hue?
-//Find a way to remove bg dirtiness and keep the trails
-//add requestAnimationFrame()
 
 // Circular motion and smooth mouse following with drag https://www.youtube.com/watch?v=raXW5J1Te7Y
 
@@ -174,6 +179,4 @@ window.requestAnimationFrame =
 //   context.stroke();
 //   context.closePath();
 // }
-
-// Screen is black but clear screen makes it gray - check implementation notes
 
