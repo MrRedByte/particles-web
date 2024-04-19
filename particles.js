@@ -134,10 +134,10 @@ window.addEventListener("keydown", function (event) {
   //Delete all particles
   if (event.key == "q") {
     particlesArray = [];
+    context.fillStyle = "rgba(253, 253, 253, 1)";
+    context.fillRect(0, 0, width, height);
   }
   if (event.key == "c") {
-    //context.fillStyle = "rgba(253, 253, 253, 1)";
-    //context.fillRect(0, 0, width, height);
     toggleAnimation();
   }
 });
